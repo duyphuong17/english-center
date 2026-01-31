@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.duyphuong.backend.domain.User;
 import com.duyphuong.backend.service.UserService;
+import com.duyphuong.backend.util.error.IdInvalidException;
 
 @RestController
 public class UserController {
@@ -36,7 +37,11 @@ public class UserController {
     }
 
     @DeleteMapping("/users/{id}")
-    public ResponseEntity<Void> deleteUser(@PathVariable("id") long id) {
+    public ResponseEntity<Void> deleteUser(@PathVariable("id") long id)
+            throws IdInvalidException {
+        if (id >= 1500) {
+            throw new IdInvalidException("id không lớn hơn 1500");
+        }
         this.userService.handleDeleteUser(id);
         return ResponseEntity.status(HttpStatus.OK).body(null);
     }
