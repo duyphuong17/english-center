@@ -8,6 +8,8 @@ import com.duyphuong.backend.domain.User;
 @Repository
 public interface UserRepository extends JpaRepository<User, Long> {
     boolean existsByEmail(String email);
+
+    User findByEmail(String email);
 }
 
 // save(entity) Thêm hoặc cập nhật
