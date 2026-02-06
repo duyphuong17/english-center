@@ -52,6 +52,7 @@ public class SecurityConfiguration {
         return http.build();
     }
 
+    // Đoạn này dùng để đọc quyền (roles) từ JWT và gán vào
     @Bean
     public JwtAuthenticationConverter jwtAuthenticationConverter() {
         JwtGrantedAuthoritiesConverter grantedAuthoritiesConverter = new JwtGrantedAuthoritiesConverter();
@@ -63,6 +64,7 @@ public class SecurityConfiguration {
         return jwtAuthenticationConverter;
     }
 
+    // Giải mã & xác thực JWT cho mỗi request gửi token lên
     @Bean
     public JwtDecoder jwtDecoder() {
         NimbusJwtDecoder jwtDecoder = NimbusJwtDecoder.withSecretKey(
@@ -77,11 +79,13 @@ public class SecurityConfiguration {
         };
     }
 
+    // ký JWT khi user đăng nhập
     @Bean
     public JwtEncoder jwtEncoder() {
         return new NimbusJwtEncoder(new ImmutableSecret<>(getSecretKey()));
     }
 
+    // Tạo SecretKey từ chuỗi secret (Base64) + thuật toán
     private SecretKey getSecretKey() {
         byte[] keyBytes = Base64.from(jwtKey).decode();
         return new SecretKeySpec(keyBytes, 0, keyBytes.length, SecurityUtil.JWT_ALGORITHM.getName());

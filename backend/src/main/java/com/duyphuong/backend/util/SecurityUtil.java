@@ -15,9 +15,6 @@ import org.springframework.security.oauth2.jwt.JwtEncoder;
 import org.springframework.security.oauth2.jwt.JwtEncoderParameters;
 import org.springframework.stereotype.Service;
 
-import com.duyphuong.backend.domain.response.ResLoginDTO;
-import com.nimbusds.jose.util.Base64;
-
 @Service
 public class SecurityUtil {
     private final JwtEncoder jwtEncoder;
@@ -38,15 +35,18 @@ public class SecurityUtil {
         Instant now = Instant.now();
         Instant validity = now.plus(this.accessTokenExpiration, ChronoUnit.SECONDS);
 
-        // @formatter:off
+        // ===== TẠO PAYLOAD (CLAIMS) CỦA JWT =====
         JwtClaimsSet claims = JwtClaimsSet.builder()
-            .issuedAt(now)
-            .expiresAt(validity)
-            .subject(authentication.getName())
-            .claim("user", authentication)
-            .build();
+                .issuedAt(now)
+                .expiresAt(validity)
+                .subject(authentication.getName())
+                .claim("user", authentication)
+                .build();
 
+        // ===== TẠO HEADER CỦA JWT bằng thuật toán HS512
         JwsHeader jwsHeader = JwsHeader.with(JWT_ALGORITHM).build();
+        // KÝ + ENCODE JWT
+        // Trả về chuỗi JWT dạng: header.payload.signature
         return this.jwtEncoder.encode(JwtEncoderParameters.from(jwsHeader, claims)).getTokenValue();
     }
 }
