@@ -2,6 +2,8 @@ package com.duyphuong.backend.controller;
 
 import java.util.List;
 
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -14,8 +16,11 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.duyphuong.backend.domain.User;
+import com.duyphuong.backend.domain.response.ResultPaginationDTO;
 import com.duyphuong.backend.service.UserService;
+import com.duyphuong.backend.util.annotation.ApiMessage;
 import com.duyphuong.backend.util.error.IdInvalidException;
+import com.turkraft.springfilter.boot.Filter;
 
 @RestController
 public class UserController {
@@ -52,8 +57,10 @@ public class UserController {
     }
 
     @GetMapping("/users")
-    public ResponseEntity<List<User>> getAllUser() {
-        return ResponseEntity.status(HttpStatus.OK).body(this.userService.handlefetchAllUser());
+    @ApiMessage("fetch all users")
+    public ResponseEntity<ResultPaginationDTO> getAllUser(@Filter Specification<User> spec,
+            Pageable pageable) {
+        return ResponseEntity.status(HttpStatus.OK).body(this.userService.handlefetchAllUser(spec, pageable));
     }
 
     @PutMapping("/users")

@@ -1,7 +1,6 @@
 package com.duyphuong.backend.domain;
 
 import java.time.Instant;
-import java.time.LocalDateTime;
 
 import com.duyphuong.backend.util.SecurityUtil;
 
@@ -11,6 +10,7 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.PrePersist;
+import jakarta.persistence.PreUpdate;
 import jakarta.persistence.Table;
 import lombok.Getter;
 import lombok.Setter;
@@ -44,4 +44,11 @@ public class Course {
         this.createdAt = Instant.now();
     }
 
+    @PreUpdate
+    public void handleBeforeUpdate() {
+        this.updatedBy = SecurityUtil.getCurrentUserLogin().isPresent() == true
+                ? SecurityUtil.getCurrentUserLogin().get()
+                : "";
+        this.updatedAt = Instant.now();
+    }
 }
