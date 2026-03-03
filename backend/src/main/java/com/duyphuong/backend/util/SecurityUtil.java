@@ -17,6 +17,8 @@ import org.springframework.security.oauth2.jwt.JwtEncoder;
 import org.springframework.security.oauth2.jwt.JwtEncoderParameters;
 import org.springframework.stereotype.Service;
 
+import com.duyphuong.backend.domain.response.ResLoginDTO;
+
 @Service
 public class SecurityUtil {
     private final JwtEncoder jwtEncoder;
@@ -29,8 +31,11 @@ public class SecurityUtil {
     @Value("${myapp.jwt.base64-secret}")
     private String jwtKey;
 
-    @Value("${myapp.jwt.access-token-validity-in-seconds}")
+    @Value("${myapp.jwt.refresh-token-validity-in-seconds}")
     private long accessTokenExpiration;
+
+    @Value("${myapp.jwt.access-token-validity-in-seconds}")
+    private long refreshTokenExpiration;
 
     public String createAccessToken(Authentication authentication) {
 
@@ -43,6 +48,26 @@ public class SecurityUtil {
                 .expiresAt(validity)
                 .subject(authentication.getName())
                 .claim("user", authentication)
+                .build();
+
+        // ===== TẠO HEADER CỦA JWT bằng thuật toán HS512
+        JwsHeader jwsHeader = JwsHeader.with(JWT_ALGORITHM).build();
+        // KÝ + ENCODE JWT
+        // Trả về chuỗi JWT dạng: header.payload.signature
+        return this.jwtEncoder.encode(JwtEncoderParameters.from(jwsHeader, claims)).getTokenValue();
+    }
+
+    public String createRefreshToken(String email, ResLoginDTO dto) {
+
+        Instant now = Instant.now();
+        Instant validity = now.plus(this.refreshTokenExpiration, ChronoUnit.SECONDS);
+
+        // ===== TẠO PAYLOAD (CLAIMS) CỦA JWT =====
+        JwtClaimsSet claims = JwtClaimsSet.builder()
+                .issuedAt(now)
+                .expiresAt(validity)
+                .subject(email)
+                .claim("user", dto.getUser())
                 .build();
 
         // ===== TẠO HEADER CỦA JWT bằng thuật toán HS512

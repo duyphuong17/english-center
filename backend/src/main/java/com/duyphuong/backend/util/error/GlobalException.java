@@ -12,6 +12,7 @@ import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.servlet.resource.NoResourceFoundException;
 
 import com.duyphuong.backend.domain.response.RestResponse;
 
@@ -37,13 +38,11 @@ public class GlobalException {
         BindingResult result = ex.getBindingResult();
         // Lấy danh sách lỗi theo từng field (field nào sai, sai cái gì)
         final List<FieldError> fieldErrors = result.getFieldErrors();
-
         // Tạo response custom để trả về cho client
         RestResponse<Object> res = new RestResponse<Object>();
         res.setStatusCode(HttpStatus.BAD_REQUEST.value());
         // Set error detail (thường là thông tin lỗi tổng quát)
         res.setError(ex.getBody().getDetail());
-
         // Lấy message của từng lỗi validate
         // Ví dụ: "email không hợp lệ", "password không được để trống"
         List<String> errors = fieldErrors.stream().map(f -> f.getDefaultMessage()).collect(Collectors.toList());
@@ -54,4 +53,14 @@ public class GlobalException {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(res);
     }
 
+    @ExceptionHandler(value = {
+            NoResourceFoundException.class,
+    })
+    public ResponseEntity<RestResponse<Object>> handleNotFoundException(Exception ex) {
+        RestResponse<Object> res = new RestResponse<>();
+        res.setStatusCode(HttpStatus.NOT_FOUND.value());
+        res.setMessage(ex.getMessage());
+        res.setError("404 Not Found. URL may not exist...");
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(res);
+    }
 }

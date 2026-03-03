@@ -16,6 +16,9 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.duyphuong.backend.domain.User;
+import com.duyphuong.backend.domain.response.ResCreateUserDTO;
+import com.duyphuong.backend.domain.response.ResUpdateUserDTO;
+import com.duyphuong.backend.domain.response.ResUserDTO;
 import com.duyphuong.backend.domain.response.ResultPaginationDTO;
 import com.duyphuong.backend.service.UserService;
 import com.duyphuong.backend.util.annotation.ApiMessage;
@@ -33,24 +36,35 @@ public class UserController {
     }
 
     @PostMapping("/users")
-    public ResponseEntity<User> createNewUser(@RequestBody User newUser) {
+    public ResponseEntity<ResCreateUserDTO> createNewUser(@RequestBody User createUser)
+            throws IdInvalidException {
+        boolean emaiUser = this.userService.handleExistByEmail(createUser.getEmail());
+        if (emaiUser) {
+            throw new IdInvalidException("email " + createUser.getEmail() + " đã tồn tại");
+        }
         // hash mật khẩu
-        String hashPassword = this.passwordEncoder.encode(newUser.getPassword());
-        newUser.setPassword(hashPassword);
-        this.userService.handleCreateUser(newUser);
-        return ResponseEntity.status(HttpStatus.CREATED).body(newUser);
+        String hashPassword = this.passwordEncoder.encode(createUser.getPassword());
+        createUser.setPassword(hashPassword);
+        User newUser = this.userService.handleCreateUser(createUser);
+        return ResponseEntity.status(HttpStatus.CREATED).body(this.userService.converToResCreateUserDTO(newUser));
     }
 
     @GetMapping("/users/{id}")
-    public ResponseEntity<User> getUserById(@PathVariable("id") long id) {
-        return ResponseEntity.status(HttpStatus.OK).body(this.userService.fetchUserById(id));
+    public ResponseEntity<ResUserDTO> getUserById(@PathVariable("id") long id) throws IdInvalidException {
+        User idUser = this.userService.fetchUserById(id);
+        if (idUser == null) {
+            throw new IdInvalidException("user với id " + id + " không tồn tại");
+        }
+        User fetchUser = this.userService.fetchUserById(id);
+        return ResponseEntity.status(HttpStatus.OK).body(this.userService.convertToResUserDTO(fetchUser));
     }
 
     @DeleteMapping("/users/{id}")
     public ResponseEntity<Void> deleteUser(@PathVariable("id") long id)
             throws IdInvalidException {
-        if (id >= 1500) {
-            throw new IdInvalidException("id không lớn hơn 1500");
+        User userId = this.userService.fetchUserById(id);
+        if (userId == null) {
+            throw new IdInvalidException("id truyền lên không tồn tại");
         }
         this.userService.handleDeleteUser(id);
         return ResponseEntity.status(HttpStatus.OK).body(null);
@@ -64,7 +78,14 @@ public class UserController {
     }
 
     @PutMapping("/users")
-    public ResponseEntity<User> updateUser(@RequestBody User user) {
-        return ResponseEntity.status(HttpStatus.OK).body(this.userService.handleUpdateUser(user));
+    public ResponseEntity<ResUpdateUserDTO> updateUser(@RequestBody User user) throws IdInvalidException {
+
+        User idUser = this.userService.fetchUserById(user.getId());
+        if (idUser == null) {
+            throw new IdInvalidException("user với id " + user.getId() + " không tồn tại");
+        }
+
+        User userUpdate = this.userService.handleUpdateUser(user);
+        return ResponseEntity.status(HttpStatus.OK).body(this.userService.convertToResUpdateUserDTO(userUpdate));
     }
 }
