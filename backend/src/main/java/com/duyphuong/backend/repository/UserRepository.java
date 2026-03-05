@@ -12,6 +12,8 @@ public interface UserRepository extends JpaRepository<User, Long>,
     boolean existsByEmail(String email);
 
     User findByEmail(String email);
+
+    User findByRefreshTokenAndEmail(String token, String email);
 }
 
 // save(entity) Thêm hoặc cập nhật
