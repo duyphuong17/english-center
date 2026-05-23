@@ -43,6 +43,8 @@ public class SecurityConfiguration {
                 .authorizeHttpRequests(
                         authz -> authz
                                 .requestMatchers("/", "/login", "/auth/refresh").permitAll()
+                                .requestMatchers(org.springframework.http.HttpMethod.POST, "/users").permitAll()
+                                .requestMatchers(org.springframework.http.HttpMethod.GET, "/users").permitAll()
                                 .anyRequest().authenticated())
                 .oauth2ResourceServer((oauth2) -> oauth2.jwt(Customizer.withDefaults())
                         .authenticationEntryPoint(customAuthenticationEntryPoint))// gọi khi token không có ,sai,hết hạn
